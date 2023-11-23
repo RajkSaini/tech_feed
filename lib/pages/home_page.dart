@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../theme/colors.dart';
+import 'accountPage.dart';
 import 'feed_page.dart';
 
 
@@ -35,13 +36,8 @@ class _HomePageState extends State<HomePage> {
               fontSize: 20, fontWeight: FontWeight.bold, color: black),
         ),
       ),
-      Center(
-        child: Text(
-          "Account Page",
-          style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, color: black),
-        ),
-      ),
+      AccountPage(key: new Key(""))
+
     ];
     return IndexedStack(
       index: activeMenu,

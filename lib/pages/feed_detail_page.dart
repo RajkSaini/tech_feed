@@ -227,7 +227,7 @@ class _StoreDetailPageState extends State<FeedDetailPage> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8.0),
           image: DecorationImage(
-            fit: BoxFit.cover, // Use BoxFit.cover to fit the image properly
+            fit: BoxFit.fitHeight, // Use BoxFit.cover to fit the image properly
             image: imageProvider,
           ),
         ),
@@ -241,7 +241,7 @@ class _StoreDetailPageState extends State<FeedDetailPage> {
             padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
             child: Container(
               width: double.infinity,
-              height: 200,
+              height: 300,
               color: Colors.white,
             ),
           ),

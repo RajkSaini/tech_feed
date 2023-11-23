@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tech_feed/pages/root_app.dart';
 
 import '../services/api_service.dart';
 import 'home_page.dart';
@@ -37,10 +38,12 @@ class _TechNewsCategorySelectorState extends State<TechNewsCategorySelector> {
     });
   }
   Future<void> _loadInitialData() async {
-    final data = await ApiService().getCategories();
+    final data = await ApiService().getCategories("");
     setState(() {
       apiResponse = data ?? [];
+      _loadCategoriesByEmail();
     });
+
   }
 
   Widget _buildCategoryButtons() {
@@ -130,7 +133,20 @@ class _TechNewsCategorySelectorState extends State<TechNewsCategorySelector> {
       print("emailId :"+emailId!);
       await ApiService().updateUserCategories(emailId, selectedCategories);
       Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => HomePage()));
+          context, MaterialPageRoute(builder: (context) => RootApp()));
+  }
+  Future<void> _loadCategoriesByEmail() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String emailId= prefs.getString('emailId')!;
+    final categories = await ApiService().getCategories(emailId);
+
+    if (categories != null) {
+      final selectedCategoryIds = categories.map((category) => category['categoryId']).toList();
+
+      setState(() {
+        selectedCategories = selectedCategoryIds.cast<String>();
+      });
+    }
   }
 }
 

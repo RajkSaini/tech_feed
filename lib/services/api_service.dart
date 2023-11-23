@@ -9,8 +9,11 @@ class ApiService {
 
   Future<List<Map<String, dynamic>>?> getFeeds(selectedCategory, int currentPage) async {
     try {
-      var url = Uri.parse(ApiConstants.baseUrl + "/" + ApiConstants.feedEndpoint + "/by-tag/" + selectedCategory + "?page="+currentPage.toString());
-      var response = await http.get(url);
+      var url = Uri.parse(ApiConstants.baseUrl + "/" + ApiConstants.feedEndpoint + "/by-tag");
+      final headers = {'Content-Type': 'application/json'};
+      final jsonParams = json.encode({'tags': selectedCategory,'page': currentPage});
+      var response = await http.post(url,headers: headers,
+          body: jsonParams);
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
         final List<dynamic> content = jsonData['content'];
@@ -20,9 +23,12 @@ class ApiService {
       log(e.toString());
     }
   }
-  Future<List<Map<String, String>>?> getCategories() async {
+  Future<List<Map<String, String>>?> getCategories(emailId) async {
+    if(emailId==""){
+      emailId = 'all';
+    }
     try {
-      var url = Uri.parse(ApiConstants.baseUrl +"/"+ ApiConstants.categoriesEndpoint + '/all');
+      var url = Uri.parse(ApiConstants.baseUrl +"/"+ ApiConstants.categoriesEndpoint + '/?emailId='+emailId);
       var response = await http.get(url);
       if (response.statusCode == 200) {
         final List<dynamic> jsonData = json.decode(response.body);

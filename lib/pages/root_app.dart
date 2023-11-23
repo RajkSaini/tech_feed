@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../services/PushNotificationService.dart';
 import '../theme/colors.dart';
+import 'accountPage.dart';
 import 'feed_page.dart';
 
 
@@ -16,6 +18,10 @@ class _RootAppState extends State<RootApp> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    //push notification related stuff
+    PushNotificationService pushNotificationService = PushNotificationService(context);
+    pushNotificationService.initialize();
+    pushNotificationService.initPushNotification();
     return Center(
       child: Container(
         constraints: const BoxConstraints(maxWidth: 400),
@@ -33,25 +39,13 @@ class _RootAppState extends State<RootApp> {
       FeedPage(key: new Key(""),category: "All"),
       Center(
         child: Text(
-          "Trending Page",
+          "Coming soon..",
           style: TextStyle(
               fontSize: 20, fontWeight: FontWeight.bold, color: black),
         ),
       ),
-      Center(
-        child: Text(
-          "Account Page",
-          style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, color: black),
-        ),
-      ),
-      Center(
-        child: Text(
-          "Account Page",
-          style: TextStyle(
-              fontSize: 20, fontWeight: FontWeight.bold, color: black),
-        ),
-      )
+      AccountPage(key: new Key(""))
+
     ];
     return IndexedStack(
       index: pageIndex,
@@ -70,12 +64,11 @@ class _RootAppState extends State<RootApp> {
       width: double.infinity,
       height: 60,
       decoration: BoxDecoration(
-          color: white,
           border: Border(
-              top: BorderSide(width: 2, color: black.withOpacity(0.06)))),
+              top: BorderSide(width: 2, color: Colors.white.withOpacity(0.06)))),
       child: Padding(
         padding:
-            const EdgeInsets.only(left: 20, right: 20, bottom: 10, top: 10),
+        const EdgeInsets.only(left: 20, right: 20, bottom: 10, top: 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -89,7 +82,9 @@ class _RootAppState extends State<RootApp> {
                     SvgPicture.asset(
                       bottomItems[index],
                       width: 18,
-                      color: pageIndex == index ? black : Colors.grey,
+                      color: pageIndex == index
+                          ? Theme.of(context).iconTheme.color
+                          : Colors.grey,
                     ),
                     SizedBox(
                       height: 5,
@@ -99,8 +94,12 @@ class _RootAppState extends State<RootApp> {
                       style: TextStyle(
                           fontSize: 10,
                           color: pageIndex == index
-                              ? black
-                              : black.withOpacity(0.5)),
+                              ? Theme.of(context).textTheme.bodyText1?.color
+                              : Theme.of(context)
+                              .textTheme
+                              .bodyText1
+                              ?.color
+                              ?.withOpacity(0.5)),
                     )
                   ],
                 ));
@@ -109,6 +108,9 @@ class _RootAppState extends State<RootApp> {
       ),
     );
   }
+
+
+
 
   selectedTab(index) {
     setState(() {

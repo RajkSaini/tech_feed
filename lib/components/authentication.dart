@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../pages/categorySelector.dart';
 import '../pages/home_page.dart';
+import '../pages/root_app.dart';
 import '../services/api_service.dart';
 
 final FirebaseAuth auth = FirebaseAuth.instance;
@@ -37,7 +38,7 @@ Future<void> signup(BuildContext context) async {
         if (userData.containsKey("id")) {
           // User exists, navigate to the HomePage
           Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => HomePage()));
+              context, MaterialPageRoute(builder: (context) => RootApp()));
         } else {
           // User does not exist, navigate to the TechNewsCategorySelector
           Navigator.pushReplacement(

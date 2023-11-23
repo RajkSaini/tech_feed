@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share/share.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:tech_feed/pages/root_app.dart';
 
 import '../components/authentication.dart';
 import '../components/google_social_button.dart';
@@ -86,7 +87,7 @@ class _StoreDetailPageState extends State<Login> {
               height: 15,
             ),
             Text(
-              "#Daily Short Tech Updates App", // Display the title from the API response
+              "#Daily Short Tech News App", // Display the title from the API response
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(
@@ -110,7 +111,7 @@ class _StoreDetailPageState extends State<Login> {
             ),
             TextButton(  onPressed: () {
               Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => HomePage()));
+                  context, MaterialPageRoute(builder: (context) => RootApp()));
             }, child: const Text('Skip to home page')),
           ],
         ),

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "638998345431",
+    "project_id": "tech-feed-21310",
+    "storage_bucket": "tech-feed-21310.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638998345431:android:1a37f16ad70185a733a292",
+        "android_client_info": {
+          "package_name": "app.techfeed"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "638998345431-j3es9tc2rkl8uhp42n0m4r7p6m5rljue.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCVunsBUepioUhYs4Sukzmp-7sOmult6es"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "638998345431-j3es9tc2rkl8uhp42n0m4r7p6m5rljue.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
