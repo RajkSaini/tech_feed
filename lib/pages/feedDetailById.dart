@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:share/share.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -19,11 +20,14 @@ class FeedDetailByIdPage extends StatefulWidget {
 
 class _FeedDetailByIdPageState extends State<FeedDetailByIdPage> {
   late Map<String, dynamic>? feed = {};
+  NativeAd? nativeAd;
+  bool isNativeAdLoaded = false;
+
   @override
   void initState() {
     super.initState();
     _loadFeedData();
-
+    loadNativeAd();
   }
 
   Future<void> _loadFeedData() async {
@@ -207,7 +211,7 @@ class _FeedDetailByIdPageState extends State<FeedDetailByIdPage> {
                         ),
                       ),
                       onPressed: () {
-                        Share.share(feed?['title'] + "\n\n" + feed?['detail']);
+                        Share.share("https://www.techfeed.app/feed/feedDetail/"+feed?['id']);
                       },
                     ),
                   ),
@@ -233,12 +237,38 @@ class _FeedDetailByIdPageState extends State<FeedDetailByIdPage> {
                 ],
               ),
             ),
+            Visibility(
+              visible: !kIsWeb && isNativeAdLoaded, // Show the AdWidget only if not running on web
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                ),
+                height: 315,
+                child: AdWidget(
+                  ad: nativeAd!,
+                ),
+              ),
+            )
           ],
         ),
       ),
     );
   }
-
+  void loadNativeAd() {
+    nativeAd = NativeAd(
+      adUnitId: ApiConstants.nativeAdID,
+      factoryId: "listTileMedium",
+      listener: NativeAdListener(onAdLoaded: (ad) {
+        setState(() {
+          isNativeAdLoaded = true;
+        });
+      }, onAdFailedToLoad: (ad, error) {
+        nativeAd!.dispose();
+      }),
+      request: const AdRequest(),
+    );
+    nativeAd!.load();
+  }
   Widget getImage(String imageId) {
     return CachedNetworkImage(
       imageUrl: ApiConstants.baseUrl + "/feed/images/" + imageId,
@@ -269,5 +299,10 @@ class _FeedDetailByIdPageState extends State<FeedDetailByIdPage> {
       ),
       errorWidget: (context, url, error) => Icon(Icons.error),
     );
+  }
+  @override
+  void dispose() {
+    nativeAd?.dispose();
+    super.dispose();
   }
 }

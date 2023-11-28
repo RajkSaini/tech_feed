@@ -1,5 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter/services.dart';
@@ -12,27 +16,31 @@ import 'feed_detail_page.dart';
 class FeedPage extends StatefulWidget {
   String category;
   FeedPage({required Key key, required this.category}) : super(key: key);
-
   @override
   _FeedPageState createState() => _FeedPageState();
 }
 
 class _FeedPageState extends State<FeedPage> {
+  List<NativeAd?> nativeAds = [];
+  List<bool> isNativeAdLoadedList = [];
   late ScrollController _scrollController;
   List<Map<String, dynamic>> feedList = [];
   String selectedCategory = 'All';
   List<Map<String, String>> categories = [];
   bool categoriesLoaded = false;
   int currentPage = 0;
-
+  int adIndex=0;
   @override
   void initState() {
     super.initState();
     selectedCategory = widget.category;
     _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
+    loadMoreAds();
     _loadCategories();
+
   }
+
 
   Future<void> _loadCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -78,25 +86,63 @@ class _FeedPageState extends State<FeedPage> {
   // Load more data when the user reaches the end of the list
   Future<void> _loadMoreData() async {
     currentPage++;
-    List<String?> categoryIds = categories.map((
-        category) => category["categoryId"]).toList();
+    List<String?> categoryIds = categories.map((category) => category["categoryId"]).toList();
+
     if (selectedCategory == 'All') {
-      final newData = await ApiService().getFeeds(
-          categoryIds, currentPage);
+      final newData = await ApiService().getFeeds(categoryIds, currentPage);
+      if (newData!.isNotEmpty) {
+        if(!kIsWeb){
+          setState(() {
+            feedList.add({'ad': true}); // Add a placeholder for the new ad instance
+          });
+        }
+      }
       setState(() {
         feedList.addAll(newData ?? []);
       });
     } else {
       List<String?> categoryIds = [getCategoryByName(selectedCategory)];
       final data = await ApiService().getFeeds(categoryIds, currentPage);
-      setState(() {
-        feedList.addAll(data ?? []);
-      });
+      if (data!.isNotEmpty) {
+        if (!kIsWeb) {
+          setState(() {
+            feedList.add(
+                {'ad': true}); // Add a placeholder for the new ad instance
+          });
+        }
+        setState(() {
+          feedList.addAll(data ?? []);
+        });
+      }
     }
   }
+  void loadNativeAd() {
+    NativeAd nativeAd = NativeAd(
+      adUnitId: ApiConstants.nativeAdID,
+      factoryId: "listTileMedium",
+      listener: NativeAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            nativeAds.add(ad as NativeAd?);
+            isNativeAdLoadedList.add(true);
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose(); // Dispose of the ad if loading fails
+        },
+      ),
+      request: const AdRequest(),
+    );
+    nativeAd.load();
+  }
 
+  loadMoreAds(){
+    for (int i = adIndex; i < adIndex+3; i++) {
+      loadNativeAd();
+    }
+  }
   void _scrollListener() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent-500) {
       // User has reached the end of the list, load more data
       _loadMoreData();
     }
@@ -106,7 +152,13 @@ class _FeedPageState extends State<FeedPage> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+    // Dispose of all loaded ads when the widget is disposed
+    for (NativeAd? ad in nativeAds) {
+      ad?.dispose();
+    }
+    super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +176,11 @@ class _FeedPageState extends State<FeedPage> {
                   child: Padding(
                     padding: EdgeInsets.only(top: 0, bottom: 10),
                     child: Container(
-                      decoration: BoxDecoration(color: white),
+                      decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.light
+                              ? Colors.white  // Use the light theme background color
+                              : Colors.black45,  // Use the dark theme background color
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.only(
                           top: 5,
@@ -146,6 +202,8 @@ class _FeedPageState extends State<FeedPage> {
                                       setState(() {
                                         selectedCategory = category!;
                                       });
+                                      nativeAds.clear();
+                                      loadMoreAds();
                                       _loadInitialData();
                                     },
                                     child: Column(
@@ -216,30 +274,58 @@ class _FeedPageState extends State<FeedPage> {
                   ],
                 ),
               )
-                  : ListView.builder(
+                  : SingleChildScrollView(
                 controller: _scrollController,
-                itemCount: feedList.isEmpty ? 0 : feedList.length * 2 - 1,
-                itemBuilder: (context, index) {
-                  if (index.isOdd) {
-                    // Add spacing above and below the divider
-                    return Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.0),
-                      child: Divider(
-                        color: Colors.grey,
-                        thickness: 1,
-                        height: 0,
-                      ),
-                    );
-                  }
-                  final feedIndex = index ~/ 2;
-                  if (feedIndex < feedList.length) {
-                    final feed = feedList[feedIndex];
-                    return YourFeedItemWidget(feed: feed);
-                  } else {
-                    return CustomLoader();
-                  }
-                },
+                child: Column(
+                  children: List.generate(
+                    feedList.isEmpty ? 0 : feedList.length * 2 - 1,
+                        (index) {
+                      if (index.isOdd) {
+                        // Add spacing above and below the divider
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12.0),
+                          child: Divider(
+                            color: Colors.grey,
+                            thickness: 1,
+                            height: 0,
+                          ),
+                        );
+                      }
+                      final feedIndex = index ~/ 2;
+                      if (feedIndex < feedList.length) {
+                        final feed = feedList[feedIndex];
+                        if (feed.containsKey('ad')) {
+                          if (!kIsWeb && nativeAds.isNotEmpty) {
+                            int index = adIndex % nativeAds.length;
+                            adIndex++;
+                            if(adIndex==nativeAds.length-1){
+                              for (int i = adIndex+1; i < adIndex+3; i++) {
+                                loadNativeAd();
+                              }
+                            }
+                            return Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                              ),
+                              height: 315,
+                              child: AdWidget(
+                                ad: nativeAds[index]!,
+                              ),
+                            );
+                          }
+                        } else {
+                          return YourFeedItemWidget(feed: feed);
+                        }
+                      } else {
+                        // Add your existing loader widget
+                        return CustomLoader();
+                      }
+                      return Container();
+                    },
+                  ),
+                ),
               ),
+
             ),
               ],
             ),
@@ -356,3 +442,5 @@ class CustomLoader extends StatelessWidget {
     );
   }
 }
+
+
